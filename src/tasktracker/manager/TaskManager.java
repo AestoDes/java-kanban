@@ -57,21 +57,31 @@ public class TaskManager {
     // Обновление статуса эпика на основе подзадач
     private void updateEpicStatus(Epic epic) {
         List<Integer> subtaskIds = epic.getSubtaskIds();
+
         if (subtaskIds.isEmpty()) {
             epic.setStatus(TaskStatus.NEW);
             return;
         }
 
+        boolean hasInProgress = false;
         boolean allDone = true;
         boolean allNew = true;
 
         for (Integer subtaskId : subtaskIds) {
             Subtask subtask = subtasks.get(subtaskId);
+
             if (subtask != null) {
-                if (subtask.getStatus() != TaskStatus.DONE) {
+                TaskStatus subtaskStatus = subtask.getStatus();
+
+                if (subtaskStatus == TaskStatus.IN_PROGRESS) {
+                    hasInProgress = true;
+                }
+
+                if (subtaskStatus != TaskStatus.DONE) {
                     allDone = false;
                 }
-                if (subtask.getStatus() != TaskStatus.NEW) {
+
+                if (subtaskStatus != TaskStatus.NEW) {
                     allNew = false;
                 }
             }
@@ -81,8 +91,10 @@ public class TaskManager {
             epic.setStatus(TaskStatus.DONE);
         } else if (allNew) {
             epic.setStatus(TaskStatus.NEW);
-        } else {
+        } else if (hasInProgress) {
             epic.setStatus(TaskStatus.IN_PROGRESS);
+        } else {
+            epic.setStatus(TaskStatus.IN_PROGRESS); // Default to IN_PROGRESS if none of the other conditions are met
         }
     }
 
