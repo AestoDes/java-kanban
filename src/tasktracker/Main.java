@@ -1,5 +1,6 @@
 package tasktracker;
 
+import tasktracker.manager.InMemoryTaskManager;
 import tasktracker.manager.TaskManager;
 import tasktracker.model.Epic;
 import tasktracker.model.Subtask;
@@ -8,7 +9,7 @@ import tasktracker.model.TaskStatus;
 
 public class Main {
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        TaskManager manager = new InMemoryTaskManager();
 
         // Создание задач
         Task task1 = new Task("Задача 1", "Описание задачи 1", manager.generateId(), TaskStatus.NEW);
