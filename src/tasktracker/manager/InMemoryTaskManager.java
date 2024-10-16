@@ -4,10 +4,12 @@ import tasktracker.model.Epic;
 import tasktracker.model.Subtask;
 import tasktracker.model.Task;
 import tasktracker.model.TaskStatus;
+
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     private int idCounter = 1;
+
     private Map<Integer, Task> tasks = new HashMap<>();
     private Map<Integer, Epic> epics = new HashMap<>();
     private Map<Integer, Subtask> subtasks = new HashMap<>();
@@ -34,7 +36,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(subtask.getEpicId());
         if (epic != null) {
             epic.addSubtaskId(subtask.getId());
-            updateEpicStatus(epic);  // Обновляем статус эпика
+            updateEpicStatus(epic);
         }
     }
 
@@ -68,8 +70,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
-            tasks.put(task.getId(), task); // Обновляем задачу
-            historyManager.add(task);      // Добавляем задачу в историю просмотров
+            tasks.put(task.getId(), task);
+            historyManager.add(task);
         } else {
             throw new IllegalArgumentException("Task with id " + task.getId() + " not found.");
         }
@@ -80,7 +82,7 @@ public class InMemoryTaskManager implements TaskManager {
         subtasks.put(subtask.getId(), subtask);
         Epic epic = epics.get(subtask.getEpicId());
         if (epic != null) {
-            updateEpicStatus(epic);  // Обновляем статус эпика
+            updateEpicStatus(epic);
         }
     }
 
@@ -94,20 +96,17 @@ public class InMemoryTaskManager implements TaskManager {
 
         boolean allNew = true;
         boolean allDone = true;
-        boolean hasInProgress = false;
 
         for (Integer subtaskId : subtaskIds) {
             Subtask subtask = subtasks.get(subtaskId);
             if (subtask != null) {
                 TaskStatus status = subtask.getStatus();
-                if (status == TaskStatus.IN_PROGRESS) {
-                    hasInProgress = true;
-                }
                 if (status != TaskStatus.NEW) {
                     allNew = false;
                 }
                 if (status != TaskStatus.DONE) {
                     allDone = false;
+                    break;  // Останавливаем проверку, если найдена невыполненная подзадача
                 }
             }
         }
@@ -116,10 +115,8 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(TaskStatus.DONE);
         } else if (allNew) {
             epic.setStatus(TaskStatus.NEW);
-        } else if (hasInProgress) {
-            epic.setStatus(TaskStatus.IN_PROGRESS);
         } else {
-            epic.setStatus(TaskStatus.IN_PROGRESS); // Если не выполнены другие условия
+            epic.setStatus(TaskStatus.IN_PROGRESS);
         }
     }
 
@@ -156,6 +153,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic != null) {
             for (Integer subtaskId : epic.getSubtaskIds()) {
                 subtasks.remove(subtaskId);
+                historyManager.getHistory().removeIf(task -> task.getId() == subtaskId);  // Удаление подзадач из истории
             }
         }
     }

@@ -1,7 +1,9 @@
 package tasktracker.manager;
 
 import tasktracker.model.Task;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,7 +13,7 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        if (history.size() == HISTORY_LIMIT) {
+        if (history.size() == HISTORY_LIMIT && !history.isEmpty()) {
             history.removeFirst();
         }
         history.add(task);
@@ -19,7 +21,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public List<Task> getHistory() {
-        return new ArrayList<>(history);
+        return Collections.unmodifiableList(new ArrayList<>(history));
     }
 }
-
